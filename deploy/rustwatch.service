@@ -1,0 +1,14 @@
+[Unit]
+Description=RustWatch: уведомления о падениях Rust-серверов
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=rustwatch
+WorkingDirectory=/opt/rustwatch
+ExecStart=/opt/rustwatch/.venv/bin/python -m rustwatch run
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
