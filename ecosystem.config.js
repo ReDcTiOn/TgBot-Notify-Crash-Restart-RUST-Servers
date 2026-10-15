@@ -13,7 +13,7 @@ module.exports = {
       name: "FR-RustWatch",
       cwd: __dirname, // отсюда бот читает config.toml, .env и state.json
       script: venvPython,
-      args: "-m rustwatch run",
+      args: ["-m", "rustwatch", "run"], // массивом: pm2 не склеивает аргументы в одну строку
       interpreter: "none", // script уже исполняемый python, pm2 не должен подставлять node
       autorestart: true,
       exp_backoff_restart_delay: 1000, // 1 с, затем растёт при повторных падениях
