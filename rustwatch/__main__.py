@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from websockets.asyncio.client import connect
 
 from .config import Config, ConfigError, load_config
+from .messages import format_bot_started, format_event, sample_events
 from .monitor import ServerMonitor
 from .notifier import TelegramNotifier
 from .rcon import HEARTBEAT_ID, RconWatcher
@@ -58,7 +59,7 @@ async def run(cfg: Config, dry_run: bool) -> None:
     tasks.append(asyncio.create_task(flusher(), name="flusher"))
     notifier.start()
     if cfg.telegram.notify_on_start:
-        notifier.notify(f"🤖 <b>RustWatch запущен</b>\nСлежу за серверами: {len(cfg.servers)}")
+        notifier.notify(format_bot_started(cfg.servers))
 
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
@@ -76,6 +77,20 @@ async def run(cfg: Config, dry_run: bool) -> None:
         await asyncio.gather(*tasks, return_exceptions=True)
         store.flush()
         await notifier.close()
+
+
+async def preview(cfg: Config, dry_run: bool) -> None:
+    """Отправить по одному примеру каждого сообщения в тему первого сервера."""
+    notifier = TelegramNotifier(
+        cfg.telegram.token, cfg.telegram.chat_id, cfg.telegram.default_thread_id, dry_run
+    )
+    notifier.start()
+    server = cfg.servers[0]
+    notifier.notify(format_bot_started(cfg.servers), server.thread_id)
+    for ev in sample_events(time.time()):
+        text = format_event(server.name, server.key, ev, cfg.tz, cfg.monitor.restart_max_downtime)
+        notifier.notify(text, server.thread_id)
+    await notifier.close(drain_timeout=60)
 
 
 async def probe(cfg: Config) -> None:
@@ -111,7 +126,7 @@ async def probe(cfg: Config) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="rustwatch", description="Уведомления о падениях и рестартах Rust-серверов")
-    parser.add_argument("command", nargs="?", choices=["run", "probe"], default="run")
+    parser.add_argument("command", nargs="?", choices=["run", "probe", "preview"], default="run")
     parser.add_argument("-c", "--config", default="config.toml")
     parser.add_argument("--env-file", default=".env")
     parser.add_argument("--dry-run", action="store_true", help="печатать уведомления в лог вместо отправки в Telegram")
@@ -139,7 +154,12 @@ def main(argv: list[str] | None = None) -> int:
         log.warning(w)
 
     try:
-        asyncio.run(probe(cfg) if args.command == "probe" else run(cfg, args.dry_run))
+        if args.command == "probe":
+            asyncio.run(probe(cfg))
+        elif args.command == "preview":
+            asyncio.run(preview(cfg, args.dry_run))
+        else:
+            asyncio.run(run(cfg, args.dry_run))
     except KeyboardInterrupt:
         pass
     return 0

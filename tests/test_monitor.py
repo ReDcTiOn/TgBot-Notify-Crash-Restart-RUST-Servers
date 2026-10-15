@@ -76,7 +76,7 @@ async def test_crash_then_recovery_goes_to_the_servers_thread(world):
 
     world.query_up = True
     assert await world.tick(2) == [EventKind.RECOVERED]
-    assert "Поднялся после краша" in world.notifier.sent[-1][1]
+    assert "СНОВА ОНЛАЙН" in world.notifier.sent[-1][1]
 
 
 async def test_rcon_log_line_turns_outage_into_planned_restart(world):

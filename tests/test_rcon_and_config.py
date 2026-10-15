@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from rustwatch.config import ConfigError, RconConfig, ServerConfig, load_config
-from rustwatch.messages import fmt_duration, format_event
+from rustwatch.messages import fmt_duration, format_bot_started, format_event, sample_events, server_tag
 from rustwatch.rcon import HEARTBEAT_ID, RconWatcher
 from rustwatch.tracker import Event, EventKind
 
@@ -112,14 +112,43 @@ def test_example_config_is_valid():
 
 def test_messages_escape_html_and_format_duration():
     tz = ZoneInfo("Europe/Moscow")
-    text = format_event("FR <#1> & co", Event(EventKind.CRASH, 0.0, players=3), tz, 900)
-    assert "&lt;#1&gt; &amp; co" in text and "КРАШ" in text and "3" in text
+    text = format_event("FR <#1> & co", "1.2.3.4:5", Event(EventKind.CRASH, 0.0, players=3), tz, 900)
+    assert "&lt;#1&gt; &amp; co" in text and "КРАШ" in text and "<b>3</b>" in text
     assert fmt_duration(45) == "45 с"
     assert fmt_duration(192) == "3 мин 12 с"
     assert fmt_duration(3900) == "1 ч 05 мин"
 
 
-def test_every_event_kind_has_a_message():
+def test_every_event_kind_has_a_balanced_message():
     tz = ZoneInfo("Europe/Moscow")
-    for kind in EventKind:
-        assert format_event("S", Event(kind, 0.0, downtime=60, reason="why"), tz, 900)
+    assert {e.kind for e in sample_events(1_000_000.0)} == set(EventKind)
+    for ev in sample_events(1_000_000.0):
+        text = format_event("FR #1 [MAIN]", "1.2.3.4:20520", ev, tz, 900)
+        for tag in ("b", "i", "code", "blockquote"):
+            assert text.count(f"<{tag}>") == text.count(f"</{tag}>"), (ev.kind, tag)
+        assert "<code>1.2.3.4:20520</code>" in text and "#FR_1" in text
+        assert len(text) < 4096
+
+
+def test_recovery_message_shows_timeline():
+    tz = ZoneInfo("UTC")
+    ev = Event(EventKind.RECOVERED, 1_000_192.0, downtime=192)
+    text = format_event("S", "h:1", ev, tz, 900)
+    assert "<b>3 мин 12 с</b>" in text
+    assert text.index("Пропал") < text.index("Вернулся") < text.index("Простой")
+
+
+def test_server_tag():
+    assert server_tag("FR #1 [NOLIMIT | X3]") == "#FR_1"
+    assert server_tag("FR #5 [MAIN]") == "#FR_5"
+    assert server_tag("[MAIN]") == "#MAIN"
+    assert server_tag("5") == "#server5"
+
+
+def test_bot_started_lists_servers_and_flags_missing_rcon():
+    with_pw = ServerConfig("A", "1.1.1.1", 1000, 1001, 1002, "x", None)
+    no_pw = ServerConfig("B <x>", "1.1.1.1", 2000, 2001, 2002, None, None)
+    text = format_bot_started([with_pw, no_pw])
+    assert "<b>2</b>" in text and "1.1.1.1:2000" in text
+    assert "Без RCON" in text and "B &lt;x&gt;" in text
+    assert "Без RCON" not in format_bot_started([with_pw])
