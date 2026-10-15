@@ -9,7 +9,7 @@ from rustwatch.messages import fmt_duration, format_bot_started, format_event, s
 from rustwatch.rcon import HEARTBEAT_ID, RconWatcher
 from rustwatch.tracker import Event, EventKind
 
-SERVER = ServerConfig("FR #1", "127.0.0.1", 20520, 20521, 20522, "pw", None)
+SERVER = ServerConfig("FR #1", "127.0.0.1", 20520, 20521, 20522, "pw")
 
 
 def watcher(clock=lambda: 100.0):
@@ -146,8 +146,8 @@ def test_server_tag():
 
 
 def test_bot_started_lists_servers_and_flags_missing_rcon():
-    with_pw = ServerConfig("A", "1.1.1.1", 1000, 1001, 1002, "x", None)
-    no_pw = ServerConfig("B <x>", "1.1.1.1", 2000, 2001, 2002, None, None)
+    with_pw = ServerConfig("A", "1.1.1.1", 1000, 1001, 1002, "x")
+    no_pw = ServerConfig("B <x>", "1.1.1.1", 2000, 2001, 2002, None)
     text = format_bot_started([with_pw, no_pw])
     assert "<b>2</b>" in text and "1.1.1.1:2000" in text
     assert "Без RCON" in text and "B &lt;x&gt;" in text

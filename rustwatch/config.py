@@ -28,7 +28,6 @@ class ConfigError(Exception):
 class TelegramConfig:
     token: str
     chat_id: int
-    default_thread_id: int | None = None
     notify_on_start: bool = True
 
 
@@ -62,7 +61,6 @@ class ServerConfig:
     query_port: int
     rcon_port: int
     rcon_password: str | None
-    thread_id: int | None
 
     @property
     def key(self) -> str:
@@ -80,10 +78,6 @@ class Config:
     @property
     def tz(self) -> ZoneInfo:
         return ZoneInfo(self.monitor.timezone)
-
-
-def _opt_int(value) -> int | None:
-    return int(value) if value not in (None, 0, "") else None
 
 
 def load_config(path: str | Path, environ: Mapping[str, str] | None = None) -> Config:
@@ -107,7 +101,6 @@ def load_config(path: str | Path, environ: Mapping[str, str] | None = None) -> C
     telegram = TelegramConfig(
         token=token,
         chat_id=int(tg["chat_id"]),
-        default_thread_id=_opt_int(tg.get("default_thread_id")),
         notify_on_start=bool(tg.get("notify_on_start", True)),
     )
 
@@ -146,7 +139,6 @@ def load_config(path: str | Path, environ: Mapping[str, str] | None = None) -> C
                 query_port=int(s.get("query_port", game + 1)),
                 rcon_port=int(s.get("rcon_port", game + 2)),
                 rcon_password=password or None,
-                thread_id=_opt_int(s.get("thread_id")),
             )
         )
     if not servers:

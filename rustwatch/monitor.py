@@ -69,8 +69,7 @@ class ServerMonitor:
         for ev in events:
             log.info("[%s] событие %s", self.server.name, ev.kind.value)
             self.notifier.notify(
-                format_event(self.server.name, self.server.key, ev, self.tz, self.cfg.restart_max_downtime),
-                self.server.thread_id,
+                format_event(self.server.name, self.server.key, ev, self.tz, self.cfg.restart_max_downtime)
             )
         if events:
             self.store.flush()

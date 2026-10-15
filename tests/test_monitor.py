@@ -11,15 +11,15 @@ from rustwatch.rcon import HEARTBEAT_ID, RconWatcher
 from rustwatch.state import StateStore
 from rustwatch.tracker import EventKind, ServerTracker, TrackerSettings
 
-SERVER = ServerConfig("FR #1", "127.0.0.1", 20520, 20521, 20522, "pw", 7)
+SERVER = ServerConfig("FR #1", "127.0.0.1", 20520, 20521, 20522, "pw")
 
 
 class FakeNotifier:
     def __init__(self):
         self.sent = []
 
-    def notify(self, text, thread_id=None):
-        self.sent.append((thread_id, text))
+    def notify(self, text):
+        self.sent.append(text)
 
 
 class World:
@@ -64,19 +64,19 @@ def world(monkeypatch, tmp_path):
     return World(monkeypatch, tmp_path)
 
 
-async def test_crash_then_recovery_goes_to_the_servers_thread(world):
+async def test_crash_then_recovery_sends_notifications(world):
     world.rcon_up()
     assert await world.tick() == []
 
     world.query_up = False
     world.rcon_down()
     assert await world.tick(3) == [EventKind.CRASH]
-    thread, text = world.notifier.sent[-1]
-    assert thread == 7 and "КРАШ" in text and "12" in text
+    text = world.notifier.sent[-1]
+    assert "КРАШ" in text and "12" in text
 
     world.query_up = True
     assert await world.tick(2) == [EventKind.RECOVERED]
-    assert "СНОВА ОНЛАЙН" in world.notifier.sent[-1][1]
+    assert "СНОВА ОНЛАЙН" in world.notifier.sent[-1]
 
 
 async def test_rcon_log_line_turns_outage_into_planned_restart(world):

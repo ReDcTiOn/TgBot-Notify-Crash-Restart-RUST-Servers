@@ -27,9 +27,7 @@ FLUSH_INTERVAL = 30
 
 
 async def run(cfg: Config, dry_run: bool) -> None:
-    notifier = TelegramNotifier(
-        cfg.telegram.token, cfg.telegram.chat_id, cfg.telegram.default_thread_id, dry_run
-    )
+    notifier = TelegramNotifier(cfg.telegram.token, cfg.telegram.chat_id, dry_run)
     store = StateStore(cfg.monitor.state_file)
     settings = TrackerSettings(
         fail_threshold=cfg.monitor.fail_threshold,
@@ -80,16 +78,13 @@ async def run(cfg: Config, dry_run: bool) -> None:
 
 
 async def preview(cfg: Config, dry_run: bool) -> None:
-    """Отправить по одному примеру каждого сообщения в тему первого сервера."""
-    notifier = TelegramNotifier(
-        cfg.telegram.token, cfg.telegram.chat_id, cfg.telegram.default_thread_id, dry_run
-    )
+    """Отправить в чат по одному примеру каждого сообщения (на примере первого сервера)."""
+    notifier = TelegramNotifier(cfg.telegram.token, cfg.telegram.chat_id, dry_run)
     notifier.start()
     server = cfg.servers[0]
-    notifier.notify(format_bot_started(cfg.servers), server.thread_id)
+    notifier.notify(format_bot_started(cfg.servers))
     for ev in sample_events(time.time()):
-        text = format_event(server.name, server.key, ev, cfg.tz, cfg.monitor.restart_max_downtime)
-        notifier.notify(text, server.thread_id)
+        notifier.notify(format_event(server.name, server.key, ev, cfg.tz, cfg.monitor.restart_max_downtime))
     await notifier.close(drain_timeout=60)
 
 

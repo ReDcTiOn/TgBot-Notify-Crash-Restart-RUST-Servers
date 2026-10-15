@@ -1,11 +1,10 @@
-# Скопируйте в config.toml и поправьте chat_id / thread_id.
+# Скопируйте в config.toml и поправьте chat_id.
 # Секреты (токен бота, пароли RCON) лежат в .env, не здесь.
 
 [telegram]
-# Супергруппа с включёнными «Темами». ID вида -100XXXXXXXXXX.
-chat_id = -1001234567890
-# Тема по умолчанию (для сообщения о запуске бота и серверов без своей темы). 0 = без темы.
-default_thread_id = 0
+# Ваш личный ID (число, например 123456789) или ID группы (-100…).
+# Напишите боту /start, иначе он не сможет вам писать.
+chat_id = 123456789
 notify_on_start = true
 
 [monitor]
@@ -34,39 +33,33 @@ shutdown_patterns = [
 
 # query_port = game_port + 1 и rcon_port = game_port + 2 вычисляются сами,
 # при другой раскладке укажите query_port / rcon_port явно.
-# thread_id: ID темы этого сервера в группе (0 = default_thread_id).
 
 [[servers]]
 name = "FR #1 [NOLIMIT | X3]"
 host = "46.174.53.23"
 game_port = 20520
 rcon_password_env = "RCON_PASSWORD_1"
-thread_id = 0
 
 [[servers]]
 name = "FR #2 [MAX3 | X3]"
 host = "46.174.53.23"
 game_port = 20510
 rcon_password_env = "RCON_PASSWORD_2"
-thread_id = 0
 
 [[servers]]
 name = "FR #3 [MAX2 | X3]"
 host = "46.174.53.23"
 game_port = 20530
 rcon_password_env = "RCON_PASSWORD_3"
-thread_id = 0
 
 [[servers]]
 name = "FR #4 [SOLO | X3]"
 host = "46.174.53.23"
 game_port = 20540
 rcon_password_env = "RCON_PASSWORD_4"
-thread_id = 0
 
 [[servers]]
 name = "FR #5 [MAIN]"
 host = "46.174.53.23"
 game_port = 20550
 rcon_password_env = "RCON_PASSWORD_5"
-thread_id = 0

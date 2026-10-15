@@ -12,7 +12,7 @@ async def run_session(handler, password="p@ss/word"):
     async with serve(handler, "127.0.0.1", 0) as server:
         port = server.sockets[0].getsockname()[1]
         calls = []
-        srv = ServerConfig("t", "127.0.0.1", port - 2, port - 1, port, password, None)
+        srv = ServerConfig("t", "127.0.0.1", port - 2, port - 1, port, password)
         w = RconWatcher(srv, RconConfig(heartbeat_interval=0.05), lambda ts, why: calls.append(why))
         await asyncio.wait_for(w._session(), 5)
         return w, calls
