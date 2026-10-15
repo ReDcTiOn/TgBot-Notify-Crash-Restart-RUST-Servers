@@ -10,7 +10,7 @@ const venvPython =
 module.exports = {
   apps: [
     {
-      name: "rustwatch",
+      name: "FR-RustWatch",
       cwd: __dirname, // отсюда бот читает config.toml, .env и state.json
       script: venvPython,
       args: "-m rustwatch run",
