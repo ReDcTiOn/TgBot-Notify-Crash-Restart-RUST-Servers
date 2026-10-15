@@ -80,7 +80,28 @@ cp .env.example .env
 .venv/bin/python -m rustwatch run --dry-run -v
 ```
 
-### Запуск как сервис
+### Запуск через pm2
+
+Нужны Node.js и pm2 (`npm i -g pm2`). Конфиг `ecosystem.config.js` берёт Python из `.venv` в папке проекта (на Linux и на Windows).
+
+```bash
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup        # выполните команду, которую он выведет, чтобы бот поднимался после перезагрузки VPS
+```
+
+Повседневные команды:
+
+```bash
+pm2 logs rustwatch      # логи
+pm2 restart rustwatch   # после правки config.toml или .env
+pm2 stop rustwatch
+pm2 status
+```
+
+При падении процесса pm2 перезапускает его сам с нарастающей паузой. При остановке боту даётся 15 секунд, чтобы сохранить `state.json` и отправить накопленную очередь уведомлений.
+
+### Запуск через systemd (вместо pm2)
 
 ```bash
 sudo useradd -r -s /usr/sbin/nologin rustwatch

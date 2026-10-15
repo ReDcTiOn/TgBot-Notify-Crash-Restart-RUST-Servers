@@ -137,6 +137,7 @@ def main(argv: list[str] | None = None) -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
     logging.basicConfig(
+        stream=sys.stdout,  # pm2/journald: обычные логи в out, а не в error
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
